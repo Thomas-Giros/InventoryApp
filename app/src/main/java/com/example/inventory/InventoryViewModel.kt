@@ -29,28 +29,45 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
         insertItem(newItem)
     }
 
-     fun updateItem(item: Item) {
+     private fun updateItem(item: Item) {
         viewModelScope.launch {
             itemDao.update(item)
         }
     }
 
-     fun deleteItem(item: Item) {
+    fun updateItem(itemId: Int,
+                   itemName: String,
+                   itemPrice: String,
+                   itemCount: String) {
+        val updatedItem = Item(id = itemId,
+                               itemName = itemName,
+                               itemPrice = itemPrice.toDouble(),
+                               quantityInStock = itemCount.toInt())
+        updateItem(updatedItem)
+    }
+
+
+    fun sellItem(item: Item) {
+        if (item.quantityInStock > 0) {
+            // Decrease the quantity by 1
+            val newItem = item.copy(quantityInStock = item.quantityInStock - 1)
+            updateItem(newItem)
+        }
+    }
+
+    fun isStockAvailable(item: Item): Boolean {
+        return (item.quantityInStock > 0)
+    }
+
+
+    fun deleteItem(item: Item) {
         viewModelScope.launch {
             itemDao.delete(item)
         }
     }
 
-     fun getItem(id: Int) {
-        viewModelScope.launch {
-            itemDao.get(id)
-        }
-    }
-
-     fun getAllItems() {
-        viewModelScope.launch {
-            itemDao.getAll()
-        }
+    fun retrieveItem(id: Int): LiveData<Item> {
+        return itemDao.get(id).asLiveData()
     }
 
     fun isEntryValid(itemName: String, itemPrice: String, itemCount: String): Boolean {
